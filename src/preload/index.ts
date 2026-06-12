@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer, webUtils } from 'electron';
+import type { IpcRendererEvent } from 'electron';
 
 import { IPC_CHANNELS } from '../shared/ipcChannels';
 import type { MdViewerApi } from './types';
@@ -47,6 +48,19 @@ const api: MdViewerApi = {
     ipcRenderer.invoke(IPC_CHANNELS.SAVE_MARKDOWN_FILE, filePath, content),
   openDefaultEditor: (filePath: string) =>
     ipcRenderer.invoke(IPC_CHANNELS.OPEN_DEFAULT_EDITOR, filePath),
+  onMenuAction: (callback: (action: string) => void) => {
+    const listener = (_event: IpcRendererEvent, action: unknown) => {
+      if (typeof action === 'string' && action.trim() !== '') {
+        callback(action);
+      }
+    };
+
+    ipcRenderer.on(IPC_CHANNELS.MENU_ACTION, listener);
+    return () => {
+      ipcRenderer.removeListener(IPC_CHANNELS.MENU_ACTION, listener);
+    };
+  },
+  exportToPdf: () => ipcRenderer.invoke(IPC_CHANNELS.EXPORT_TO_PDF),
   setUnsavedChanges: (hasUnsavedChanges: boolean) =>
     ipcRenderer.invoke(IPC_CHANNELS.SET_UNSAVED_CHANGES, hasUnsavedChanges),
   confirmDiscardChanges: () => ipcRenderer.invoke(IPC_CHANNELS.CONFIRM_DISCARD_CHANGES),

@@ -6,6 +6,7 @@ import type {
   MarkdownOpenResult,
   MarkdownSaveResult,
   OpenDefaultEditorResult,
+  PdfExportResult,
   SecurityDiagnostics,
   WorkspaceOpenResult
 } from '../shared/documentTypes';
@@ -20,6 +21,8 @@ export type MdViewerApi = {
   getRecentItems: () => Promise<RecentItemsResult>;
   saveMarkdownFile: (filePath: string, content: string) => Promise<MarkdownSaveResult>;
   openDefaultEditor: (filePath: string) => Promise<OpenDefaultEditorResult>;
+  onMenuAction: (callback: (action: string) => void) => () => void;
+  exportToPdf: () => Promise<PdfExportResult>;
   setUnsavedChanges: (hasUnsavedChanges: boolean) => Promise<{ ok: true }>;
   confirmDiscardChanges: () => Promise<ConfirmDiscardChangesResult>;
   resolveMarkdownImage: (documentPath: string, imageSource: string) => Promise<ImageResolutionResult>;

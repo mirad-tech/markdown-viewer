@@ -57,6 +57,11 @@ export type ConfirmDiscardChangesResult = {
   action: 'cancel' | 'discard';
 };
 
+export type PdfExportResult = {
+  ok: boolean;
+  message?: string;
+};
+
 export type WorkspaceTreeNode =
   | {
       type: 'directory';

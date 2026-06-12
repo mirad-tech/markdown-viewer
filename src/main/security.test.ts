@@ -31,6 +31,8 @@ describe('Electron security defaults', () => {
         'document:openDefaultEditor',
         'editor:setUnsavedChanges',
         'editor:confirmDiscardChanges',
+        'menu-action',
+        'export-to-pdf',
         'app:getSecurityDiagnostics'
       ]
     });

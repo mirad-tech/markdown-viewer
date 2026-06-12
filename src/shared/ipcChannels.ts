@@ -11,6 +11,8 @@ export const IPC_CHANNELS = {
   OPEN_DEFAULT_EDITOR: 'document:openDefaultEditor',
   SET_UNSAVED_CHANGES: 'editor:setUnsavedChanges',
   CONFIRM_DISCARD_CHANGES: 'editor:confirmDiscardChanges',
+  MENU_ACTION: 'menu-action',
+  EXPORT_TO_PDF: 'export-to-pdf',
   GET_SECURITY_DIAGNOSTICS: 'app:getSecurityDiagnostics'
 } as const;
 
