@@ -19,7 +19,7 @@ async function createPackagedFixture(): Promise<{
 }
 
 test('packaged Windows app starts securely and opens Markdown without dev server', async () => {
-  const executablePath = join(process.cwd(), 'release', 'win-unpacked', 'Local Markdown Viewer.exe');
+  const executablePath = join(process.cwd(), 'release', 'win-unpacked', 'Markdown viewer.exe');
   await access(executablePath);
 
   const fixture = await createPackagedFixture();
@@ -67,7 +67,7 @@ test('packaged Windows app starts securely and opens Markdown without dev server
 });
 
 test('packaged Windows app opens Markdown passed by Windows file association arguments', async () => {
-  const executablePath = join(process.cwd(), 'release', 'win-unpacked', 'Local Markdown Viewer.exe');
+  const executablePath = join(process.cwd(), 'release', 'win-unpacked', 'Markdown viewer.exe');
   await access(executablePath);
 
   const fixture = await createPackagedFixture();

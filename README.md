@@ -1,6 +1,6 @@
-# Local Markdown Viewer
+# Markdown查看器 / Markdown viewer
 
-Local Markdown Viewer 是一个本地优先的 Electron Markdown 文档查看器。
+Markdown查看器 是一个本地优先的 Electron Markdown 文档查看器，英文名为 Markdown viewer。
 
 ## 使用
 
@@ -14,6 +14,6 @@ Local Markdown Viewer 是一个本地优先的 Electron Markdown 文档查看器
 
 ## 打包版说明
 
-Windows 便携包无需安装，运行 `Local-Markdown-Viewer-1.0.0-portable.exe` 即可启动。
+Windows 便携包无需安装，运行 `Markdown-viewer-1.0.0-portable.exe` 即可启动。
 
 应用只通过受控文件 API 打开、读取和保存用户选择的 Markdown 文档。卸载或删除应用本身不会删除用户文档。

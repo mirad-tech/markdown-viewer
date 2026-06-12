@@ -84,6 +84,7 @@ test('desktop reading interface keeps sidebar closed until requested', async () 
 
   await openFixture(page);
 
+  await expect(page.locator('.app-name-label')).toHaveText('Markdown查看器');
   await expect(page.getByTestId('app-shell')).toBeVisible();
   await expect(page.getByTestId('top-toolbar')).toBeVisible();
   await expect(page.getByTestId('sidebar-panel')).toBeHidden();

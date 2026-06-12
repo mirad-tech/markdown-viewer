@@ -28,7 +28,7 @@ describe('stage 8 packaging configuration', () => {
     const pkg = await readPackageJson();
 
     expect(pkg.version).toMatch(/^\d+\.\d+\.\d+$/);
-    expect(pkg.productName).toBe('Local Markdown Viewer');
+    expect(pkg.productName).toBe('Markdown viewer');
     expect(pkg.devDependencies).toHaveProperty('electron-builder');
     expect(pkg.scripts).toMatchObject({
       dist: 'npm run build && electron-builder',
@@ -37,13 +37,13 @@ describe('stage 8 packaging configuration', () => {
       'test:e2e:stage8': 'playwright test tests/e2e/stage8.spec.ts'
     });
     expect(pkg.build).toMatchObject({
-      appId: 'app.local-markdown-viewer.desktop',
-      productName: 'Local Markdown Viewer',
+      appId: 'app.markdown-viewer.desktop',
+      productName: 'Markdown viewer',
       directories: {
         output: 'release'
       },
       portable: {
-        artifactName: 'Local-Markdown-Viewer-${version}-portable.${ext}'
+        artifactName: 'Markdown-viewer-${version}-portable.${ext}'
       }
     });
     expect(pkg.build?.files).toEqual(expect.arrayContaining(['out/**', 'package.json']));
@@ -56,7 +56,8 @@ describe('stage 8 packaging configuration', () => {
     expect(icon.subarray(0, 4)).toEqual(Buffer.from([0, 0, 1, 0]));
 
     const guide = await readFile(join(root, 'README.md'), 'utf8');
-    expect(guide).toContain('Local Markdown Viewer');
+    expect(guide).toContain('Markdown查看器');
+    expect(guide).toContain('Markdown viewer');
     expect(guide).toContain('打开 Markdown 文件');
     expect(guide).toContain('打开文件夹');
     expect(guide).toContain('不会删除用户文档');

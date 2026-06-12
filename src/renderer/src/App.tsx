@@ -767,7 +767,7 @@ export function App() {
         <div className="toolbar-left">
           <div className="app-logo-group" data-testid="app-logo">
             <FileCode aria-hidden="true" className="toolbar-mark" size={18} strokeWidth={2.4} />
-            <span className="app-name-label">MIRAD</span>
+            <span className="app-name-label">Markdown查看器</span>
           </div>
 
           <button className="primary-action" type="button" onClick={openMarkdownFile}>

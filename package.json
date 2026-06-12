@@ -1,9 +1,9 @@
 {
-  "name": "local-markdown-viewer",
-  "productName": "Local Markdown Viewer",
+  "name": "markdown-viewer",
+  "productName": "Markdown viewer",
   "version": "1.0.0",
-  "description": "Local-first Electron Markdown viewer",
-  "author": "Local Markdown Viewer Contributors",
+  "description": "Markdown viewer desktop app",
+  "author": "Markdown viewer Contributors",
   "main": "out/main/index.js",
   "type": "module",
   "license": "UNLICENSED",
@@ -33,8 +33,8 @@
     "test:e2e:stage8": "playwright test tests/e2e/stage8.spec.ts"
   },
   "build": {
-    "appId": "app.local-markdown-viewer.desktop",
-    "productName": "Local Markdown Viewer",
+    "appId": "app.markdown-viewer.desktop",
+    "productName": "Markdown viewer",
     "asar": true,
     "directories": {
       "buildResources": "build",
@@ -51,7 +51,7 @@
       ]
     },
     "portable": {
-      "artifactName": "Local-Markdown-Viewer-${version}-portable.${ext}"
+      "artifactName": "Markdown-viewer-${version}-portable.${ext}"
     }
   },
   "dependencies": {
