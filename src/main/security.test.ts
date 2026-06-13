@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
-import { SECURE_WEB_PREFERENCES, createSecurityDiagnostics } from './security';
+import { SECURE_WEB_PREFERENCES, createSecurityDiagnostics, resolveTrustedRendererUrl } from './security';
 
 describe('Electron security defaults', () => {
   test('renderer runs isolated, sandboxed, and without Node integration', () => {
@@ -36,5 +36,17 @@ describe('Electron security defaults', () => {
         'app:getSecurityDiagnostics'
       ]
     });
+  });
+
+  test('ignores renderer URL overrides in packaged builds', () => {
+    expect(resolveTrustedRendererUrl('http://localhost:5173', true)).toBeNull();
+  });
+
+  test('allows only loopback renderer URLs in development builds', () => {
+    expect(resolveTrustedRendererUrl('http://localhost:5173', false)).toBe('http://localhost:5173/');
+    expect(resolveTrustedRendererUrl('http://127.0.0.1:5173', false)).toBe('http://127.0.0.1:5173/');
+    expect(resolveTrustedRendererUrl('http://[::1]:5173', false)).toBe('http://[::1]:5173/');
+    expect(resolveTrustedRendererUrl('https://example.com/app', false)).toBeNull();
+    expect(resolveTrustedRendererUrl('file:///C:/tmp/renderer.html', false)).toBeNull();
   });
 });

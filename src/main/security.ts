@@ -12,6 +12,27 @@ export const SECURE_WEB_PREFERENCES = {
   allowRunningInsecureContent: false
 } satisfies NonNullable<BrowserWindowConstructorOptions['webPreferences']>;
 
+const LOOPBACK_RENDERER_HOSTS = new Set(['localhost', '127.0.0.1', '::1', '[::1]']);
+
+export function resolveTrustedRendererUrl(rawUrl: string | undefined, isPackaged: boolean): string | null {
+  if (isPackaged || !rawUrl) {
+    return null;
+  }
+
+  try {
+    const url = new URL(rawUrl);
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+      return null;
+    }
+    if (!LOOPBACK_RENDERER_HOSTS.has(url.hostname.toLowerCase())) {
+      return null;
+    }
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
 export function createSecurityDiagnostics(): SecurityDiagnostics {
   return {
     contextIsolation: true,

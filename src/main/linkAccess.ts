@@ -1,9 +1,9 @@
-import { dirname, resolve } from 'node:path';
-
 import type { MarkdownLinkOpenResult } from '../shared/documentTypes';
 import { isMarkdownPath, readMarkdownFile } from './fileAccess';
+import { resolveDocumentRelativePath, type LocalResourceAccessOptions } from './pathPolicy';
 
 export type ExternalLinkOpener = (url: string) => Promise<void> | void;
+export type MarkdownLinkOpenOptions = LocalResourceAccessOptions;
 
 const DANGEROUS_PROTOCOLS = new Set(['javascript:', 'data:', 'vbscript:', 'file:']);
 
@@ -27,7 +27,8 @@ function decodePath(value: string): string {
 export async function openMarkdownLink(
   documentPath: unknown,
   rawHref: unknown,
-  openExternal: ExternalLinkOpener
+  openExternal: ExternalLinkOpener,
+  options: MarkdownLinkOpenOptions = {}
 ): Promise<MarkdownLinkOpenResult> {
   if (typeof documentPath !== 'string' || documentPath.trim() === '') {
     return {
@@ -74,7 +75,15 @@ export async function openMarkdownLink(
     };
   }
 
-  const localPath = resolve(dirname(resolve(documentPath)), decodePath(removeUrlSuffix(href)));
+  const localPath = resolveDocumentRelativePath(documentPath, decodePath(removeUrlSuffix(href)), options.allowedDirectories);
+  if (!localPath) {
+    return {
+      ok: false,
+      code: 'UNSUPPORTED_LINK',
+      message: '只能打开 Markdown 链接或安全外部链接。'
+    };
+  }
+
   if (!isMarkdownPath(localPath)) {
     return {
       ok: false,

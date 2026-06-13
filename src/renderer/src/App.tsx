@@ -38,7 +38,12 @@ import {
   renderMarkdownDocument,
   type EditableMarkdownBlock
 } from './markdown/renderMarkdown';
-import { applyImageResolutions, type ImageResolutionMap } from './markdown/resolveImages';
+import {
+  applyImageResolutions,
+  collectLocalImageResolutionGroups,
+  resolveImageGroupsWithLimit,
+  type ImageResolutionMap
+} from './markdown/resolveImages';
 import { applySearchHighlights } from './markdown/searchHtml';
 import type {
   MarkdownDocument,
@@ -408,13 +413,8 @@ export function App() {
   useEffect(() => {
     if (viewState.status !== 'ready' || renderedMarkdown?.status !== 'ready') return;
 
-    const template = document.createElement('template');
-    template.innerHTML = renderedMarkdown.html;
-    const imageSources = Array.from(template.content.querySelectorAll<HTMLImageElement>('img[data-local-src]'))
-      .map((image) => image.getAttribute('data-local-src') ?? '')
-      .filter((source) => source.length > 0);
-    const uniqueSources = Array.from(new Set(imageSources));
-    if (uniqueSources.length === 0) {
+    const imageGroups = collectLocalImageResolutionGroups(renderedMarkdown.html);
+    if (imageGroups.length === 0) {
       setImageResolutions({});
       return;
     }
@@ -424,14 +424,14 @@ export function App() {
     setImageResolutions({});
 
     async function resolveImages(): Promise<void> {
-      const entries = await Promise.all(
-        uniqueSources.map(async (source) => [
-          source,
-          await window.mdViewer.resolveMarkdownImage(documentPath, source)
-        ] as const)
+      const resolutions = await resolveImageGroupsWithLimit(
+        imageGroups,
+        (source) => window.mdViewer.resolveMarkdownImage(documentPath, source),
+        undefined,
+        () => canceled
       );
       if (!canceled) {
-        setImageResolutions(Object.fromEntries(entries));
+        setImageResolutions(resolutions);
       }
     }
 

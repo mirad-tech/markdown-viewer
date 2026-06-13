@@ -2,7 +2,7 @@ import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron';
 import { existsSync } from 'node:fs';
 import { writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join, resolve, relative, isAbsolute } from 'node:path';
+import { join, resolve } from 'node:path';
 
 import { openDefaultEditor, saveMarkdownFile } from './documentWrite';
 import { isMarkdownPath, readMarkdownFile } from './fileAccess';
@@ -18,25 +18,12 @@ import {
 import { createRecentStore } from './recentStore';
 import { createSecurityDiagnostics } from './security';
 import { openMarkdownWorkspace, type WorkspaceOpenOptions } from './workspaceAccess';
+import { isPathInsideDirectory, normalizePath } from './pathPolicy';
 import { IPC_CHANNELS } from '../shared/ipcChannels';
 import type { MarkdownLinkOpenResult, MarkdownOpenResult, WorkspaceOpenResult } from '../shared/documentTypes';
 
 const authorizedFiles = new Set<string>();
 const authorizedDirs = new Set<string>();
-
-function normalizePath(p: string): string {
-  return resolve(p).replace(/\\/g, '/').toLowerCase();
-}
-
-function isPathInsideDirectory(childPath: string, parentDir: string): boolean {
-  const normChild = normalizePath(childPath);
-  const normParent = normalizePath(parentDir);
-  if (normChild === normParent) {
-    return true;
-  }
-  const rel = relative(normParent, normChild);
-  return !rel.startsWith('..') && !isAbsolute(rel);
-}
 
 let recentStoreRef: ReturnType<typeof createRecentStore> | null = null;
 
@@ -251,7 +238,9 @@ export function registerIpcHandlers(window: BrowserWindow): void {
           message: '文件路径无效。'
         };
       }
-      return resolveMarkdownImage(documentPath, imageSource);
+      return resolveMarkdownImage(documentPath, imageSource, {
+        allowedDirectories: Array.from(authorizedDirs)
+      });
     }
   );
 
@@ -263,8 +252,13 @@ export function registerIpcHandlers(window: BrowserWindow): void {
         message: '文件路径无效。'
       };
     }
-    const result: MarkdownLinkOpenResult = await openMarkdownLink(documentPath, href, (url) =>
-      shell.openExternal(url)
+    const result: MarkdownLinkOpenResult = await openMarkdownLink(
+      documentPath,
+      href,
+      (url) => shell.openExternal(url),
+      {
+        allowedDirectories: Array.from(authorizedDirs)
+      }
     );
     if (result.ok && result.action === 'markdown') {
       authorizedFiles.add(normalizePath(result.document.path));
