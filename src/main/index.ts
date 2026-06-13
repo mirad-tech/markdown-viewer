@@ -7,7 +7,7 @@ import { registerIpcHandlers } from './ipc';
 import { findMarkdownPathInArgs } from './launchArguments';
 import { installNativeApplicationMenu } from './nativeMenu';
 import { getPreloadPath, getRendererIndexPath } from './paths';
-import { createWebPreferences } from './security';
+import { createWebPreferences, resolveTrustedRendererUrl } from './security';
 import { IPC_CHANNELS } from '../shared/ipcChannels';
 
 const currentFile = fileURLToPath(import.meta.url);
@@ -74,8 +74,9 @@ async function createMainWindow(): Promise<void> {
     mainWindow?.show();
   });
 
-  if (process.env.ELECTRON_RENDERER_URL) {
-    await mainWindow.loadURL(process.env.ELECTRON_RENDERER_URL);
+  const trustedRendererUrl = resolveTrustedRendererUrl(process.env.ELECTRON_RENDERER_URL, app.isPackaged);
+  if (trustedRendererUrl) {
+    await mainWindow.loadURL(trustedRendererUrl);
   } else {
     await mainWindow.loadFile(getRendererIndexPath(currentDir));
   }

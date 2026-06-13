@@ -130,6 +130,7 @@ export type MarkdownImageErrorCode =
   | 'UNSUPPORTED_IMAGE_SOURCE'
   | 'UNSUPPORTED_IMAGE_TYPE'
   | 'IMAGE_NOT_FOUND'
+  | 'IMAGE_TOO_LARGE'
   | 'IMAGE_READ_FAILED';
 
 export type ImageResolutionResult =

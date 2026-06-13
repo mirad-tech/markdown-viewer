@@ -16,6 +16,24 @@ async function createLinkFixture(): Promise<{ documentPath: string; linkedPath: 
   return { documentPath, linkedPath };
 }
 
+async function createBoundaryFixture(): Promise<{
+  documentPath: string;
+  workspacePath: string;
+  allowedPath: string;
+}> {
+  const dir = join(tmpdir(), `md-viewer-link-boundary-${Date.now()}-${Math.random().toString(16).slice(2)}`);
+  const workspacePath = join(dir, 'workspace');
+  await mkdir(join(workspacePath, 'docs'), { recursive: true });
+  await mkdir(join(workspacePath, 'private'), { recursive: true });
+  await mkdir(join(dir, 'private'), { recursive: true });
+  const documentPath = join(workspacePath, 'docs', 'entry.md');
+  const allowedPath = join(workspacePath, 'private', 'allowed.md');
+  await writeFile(documentPath, '# Entry', 'utf8');
+  await writeFile(allowedPath, '# Allowed', 'utf8');
+  await writeFile(join(dir, 'private', 'secret.md'), '# Secret', 'utf8');
+  return { documentPath, workspacePath, allowedPath };
+}
+
 describe('controlled Markdown link opening', () => {
   test('opens a relative Markdown link through the controlled file reader', async () => {
     const { documentPath, linkedPath } = await createLinkFixture();
@@ -54,5 +72,48 @@ describe('controlled Markdown link opening', () => {
       message: '已阻止不安全链接。'
     });
     expect(openExternal).not.toHaveBeenCalled();
+  });
+
+  test('rejects decoded traversal outside a standalone document directory', async () => {
+    const { documentPath } = await createBoundaryFixture();
+
+    await expect(openMarkdownLink(documentPath, '../../private/secret.md', vi.fn())).resolves.toMatchObject({
+      ok: false,
+      code: 'UNSUPPORTED_LINK'
+    });
+    await expect(openMarkdownLink(documentPath, '%2e%2e/%2e%2e/private/secret.md', vi.fn())).resolves.toMatchObject({
+      ok: false,
+      code: 'UNSUPPORTED_LINK'
+    });
+  });
+
+  test('allows relative Markdown links inside an authorized workspace directory', async () => {
+    const { documentPath, workspacePath, allowedPath } = await createBoundaryFixture();
+
+    const result = await openMarkdownLink(documentPath, '../private/allowed.md', vi.fn(), {
+      allowedDirectories: [workspacePath]
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok || result.action !== 'markdown') return;
+    expect(result.document.path).toBe(allowedPath);
+    expect(result.document.content).toBe('# Allowed');
+  });
+
+  test('does not let a standalone document borrow another authorized workspace boundary', async () => {
+    const dir = join(tmpdir(), `md-viewer-link-cross-boundary-${Date.now()}-${Math.random().toString(16).slice(2)}`);
+    const workspacePath = join(dir, 'workspace');
+    await mkdir(join(dir, 'docs'), { recursive: true });
+    await mkdir(join(workspacePath, 'private'), { recursive: true });
+    const documentPath = join(dir, 'docs', 'entry.md');
+    await writeFile(documentPath, '# Entry', 'utf8');
+    await writeFile(join(workspacePath, 'private', 'secret.md'), '# Secret', 'utf8');
+
+    await expect(openMarkdownLink(documentPath, '../workspace/private/secret.md', vi.fn(), {
+      allowedDirectories: [workspacePath]
+    })).resolves.toMatchObject({
+      ok: false,
+      code: 'UNSUPPORTED_LINK'
+    });
   });
 });

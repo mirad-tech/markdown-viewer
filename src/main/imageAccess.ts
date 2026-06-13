@@ -1,7 +1,8 @@
 import { readFile, stat } from 'node:fs/promises';
-import { dirname, extname, isAbsolute, resolve } from 'node:path';
+import { extname, isAbsolute } from 'node:path';
 
 import type { ImageResolutionResult } from '../shared/documentTypes';
+import { resolveDocumentRelativePath, type LocalResourceAccessOptions } from './pathPolicy';
 
 const MIME_BY_EXTENSION = new Map<string, string>([
   ['.png', 'image/png'],
@@ -11,6 +12,12 @@ const MIME_BY_EXTENSION = new Map<string, string>([
   ['.webp', 'image/webp'],
   ['.bmp', 'image/bmp']
 ]);
+
+export const DEFAULT_MAX_MARKDOWN_IMAGE_BYTES = 10 * 1024 * 1024;
+
+export type MarkdownImageAccessOptions = LocalResourceAccessOptions & {
+  maxBytes?: number;
+};
 
 function hasProtocol(value: string): boolean {
   return /^[a-zA-Z][a-zA-Z\d+.-]*:/.test(value);
@@ -30,7 +37,8 @@ function decodePath(value: string): string {
 
 export async function resolveMarkdownImage(
   documentPath: unknown,
-  rawSrc: unknown
+  rawSrc: unknown,
+  options: MarkdownImageAccessOptions = {}
 ): Promise<ImageResolutionResult> {
   if (typeof documentPath !== 'string' || documentPath.trim() === '') {
     return {
@@ -70,7 +78,14 @@ export async function resolveMarkdownImage(
     };
   }
 
-  const imagePath = resolve(dirname(resolve(documentPath)), decodedSrc);
+  const imagePath = resolveDocumentRelativePath(documentPath, decodedSrc, options.allowedDirectories);
+  if (!imagePath) {
+    return {
+      ok: false,
+      code: 'UNSUPPORTED_IMAGE_SOURCE',
+      message: '仅支持当前 Markdown 文件旁的相对路径图片。'
+    };
+  }
 
   try {
     const info = await stat(imagePath);
@@ -79,6 +94,15 @@ export async function resolveMarkdownImage(
         ok: false,
         code: 'IMAGE_NOT_FOUND',
         message: '图片不存在或已被移动。'
+      };
+    }
+
+    const maxBytes = Math.max(0, Math.floor(options.maxBytes ?? DEFAULT_MAX_MARKDOWN_IMAGE_BYTES));
+    if (info.size > maxBytes) {
+      return {
+        ok: false,
+        code: 'IMAGE_TOO_LARGE',
+        message: '图片过大，已跳过。'
       };
     }
 
